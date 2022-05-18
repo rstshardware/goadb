@@ -9,7 +9,7 @@ import (
 	"github.com/rstshardware/goadb/internal/errors"
 )
 
-// TODO(zach): All EOF errors returned from networoking calls should use ConnectionResetError.
+// TODO(zach): All EOF errors returned from networking calls should use ConnectionResetError.
 
 // StatusCodes are returned by the server. If the code indicates failure, the
 // next message will be the error.
@@ -164,9 +164,9 @@ func readHexLength(r io.Reader) (int, error) {
 	}
 
 	// Clip the length to 255, as per the Google implementation.
-	if length > MaxMessageLength {
-		length = MaxMessageLength
-	}
+	// if length > MaxMessageLength {
+	// 	length = MaxMessageLength
+	// }
 
 	return int(length), nil
 }
