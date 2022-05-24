@@ -18,6 +18,9 @@ type DeviceInfo struct {
 
 	// Only set for devices connected via USB.
 	Usb string
+
+	// device state
+	State DeviceState
 }
 
 // IsUsb returns true if the device is connected via USB.
@@ -25,7 +28,7 @@ func (d *DeviceInfo) IsUsb() bool {
 	return d.Usb != ""
 }
 
-func newDevice(serial string, attrs map[string]string) (*DeviceInfo, error) {
+func newDevice(serial string, attrs map[string]string, state DeviceState) (*DeviceInfo, error) {
 	if serial == "" {
 		return nil, errors.AssertionErrorf("device serial cannot be blank")
 	}
@@ -36,6 +39,7 @@ func newDevice(serial string, attrs map[string]string) (*DeviceInfo, error) {
 		Model:      attrs["model"],
 		DeviceInfo: attrs["device"],
 		Usb:        attrs["usb"],
+		State:      state,
 	}, nil
 }
 
@@ -60,15 +64,21 @@ func parseDeviceShort(line string) (*DeviceInfo, error) {
 		return nil, errors.Errorf(errors.ParseError,
 			"malformed device line, expected 2 fields but found %d", len(fields))
 	}
-
-	return newDevice(fields[0], map[string]string{})
+	state, err := parseDeviceState(fields[1])
+	if err != nil {
+		return nil, err
+	}
+	return newDevice(fields[0], map[string]string{}, state)
 }
 
 func parseDeviceLong(line string) (*DeviceInfo, error) {
 	fields := strings.Fields(line)
-
+	state, err := parseDeviceState(fields[1])
+	if err != nil {
+		return nil, err
+	}
 	attrs := parseDeviceAttributes(fields[2:])
-	return newDevice(fields[0], attrs)
+	return newDevice(fields[0], attrs, state)
 }
 
 func parseDeviceAttributes(fields []string) map[string]string {
